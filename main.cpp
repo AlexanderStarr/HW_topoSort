@@ -3,7 +3,6 @@
 #include <stack>
 
 using namespace std;
-const int DEFAULT_SIZE = 11;
 
 template <class T>
 struct Node {
