@@ -1,119 +1,111 @@
 #include <iostream>
 #include <list>
 #include <stack>
+#include <string>
 
 using namespace std;
 
+// To represent a graph, you use an array of graphNodes.  successors is a
+// C++ list of the integer index of each node that the current node points to.
+// Thus, you can access any successor in constant time.
 template <class T>
-struct Node {
-	T data;
-	Node<T> * next;
-	Node<T> () {};
-	Node<T> (T init_data, Node<T> *ptr) {data = init_data; next=ptr;};
-	void print() {cout << data;};
+struct graphNode {
+	T nodeID;
+	bool isAssigned;
+	bool isExplored;
+	list<int> *successors;
+	graphNode(){isAssigned=false; isExplored=false; successors=new list<int>;};
+	void printNode();
+	void addSuccessor(int new_index){successors->push_back(new_index);}
 };
 
 template <class T>
-struct countNode {
-	int count;
-	bool is_assigned;
-	T data;
-	Node<T> * next;
-	countNode<T> () {is_assigned = false; next = NULL;};
-	countNode<T> (int init_count, T init_data, Node<T> *ptr) {count = init_count; is_assigned = true; data = init_data; next=ptr;};
-	void print() {cout << data << '[' << count << ']';};
-	void addNode(T new_data);
-};
-
-template <class T>
-void countNode<T>::addNode(T new_data) {
-	Node<T> *tmp = next;
-	if (not tmp) {
-		Node<T> *new_node = new Node<T>(new_data, NULL);
-		next = new_node;
-	}
-	else {
-		bool is_duplicate = false;
-		while (tmp->next) {
-			if (tmp->data == new_data) {
-				is_duplicate = true;
+void graphNode<T>::printNode() {
+	cout << nodeID << " --> [";
+	if (isAssigned) {
+		for (list<int>::iterator it=successors->begin(); it != successors->end(); ++it){
+			cout << *it;
+			if (++it != successors->end()) {
+				cout << ", ";
 			}
-			tmp = tmp->next;
-		}
-		if (not is_duplicate) {
-			Node<T> *new_node = new Node<T>(new_data, NULL);
-			tmp->next = new_node;
+			--it;
 		}
 	}
+	cout << ']';
 }
 
 template <class T>
 class Graph {
-	countNode<T> *arr;
 	int size;
+	graphNode<T> *arr;
+	stack<int> order;
 public:
 	Graph(){};
-	Graph(int init_size){arr = new countNode<T>[init_size]; size = init_size;};
-	void print();
+	Graph(int init_size){arr = new graphNode<T>[init_size]; size = init_size;};
+	void printGraph();
+	int findNode(T search_ID);
+	int addOrFindNode(T init_ID);
+	void addSuccessor(int pre, int suc) {arr[pre].addSuccessor(suc);};
 	void addArc(T pre, T suc);
 };
 
 template <class T>
-void Graph<T>::print() {
+void Graph<T>::printGraph() {
 	for (int i=0; i<size; i++) {
-		arr[i].print();
-		cout << " -> ";
-		Node<T> *tmp = arr[i].next;
-		while (tmp) {
-			tmp->print();
-			tmp = tmp->next;
-			if (tmp) {
-				cout << " -> ";
-			}
-		};
-		cout << endl;
+		if (arr[i].isAssigned) {
+			arr[i].printNode();
+			cout << endl;
+		}
+		else {
+			break;
+		}
+
 	}
 }
 
 template <class T>
-void Graph<T>::addArc(T pre, T suc) {
-	bool p_found = false, s_found = false;
+int Graph<T>::findNode(T search_ID) {
 	for (int i=0; i<size; i++) {
-		if (not arr[i].is_assigned) {
-			if (not p_found) {
-				arr[i].data = pre;
-				arr[i].is_assigned = true;
-				p_found = true;
-			}
-			else if (not s_found) {
-				arr[i].data = suc;
-				arr[i].is_assigned = true;
-				s_found = true;
-			}
+		if (not arr[i].isAssigned) {
+			break;
 		}
-		if (arr[i].data == pre) {
-			arr[i].addNode(suc);
-			p_found = true;
+		if (arr[i].nodeID == search_ID) {
+			return i;
 		}
-		else if (arr[i].data == suc) {
-			arr[i].count++;
-			s_found = true;
-		}
-	};
-};
+	}
+	return -1;
+}
+
+template <class T>
+int Graph<T>::addOrFindNode(T init_ID) {
+	for (int i=0; i<size; i++) {
+		if (not arr[i].isAssigned) {
+			arr[i].nodeID = init_ID;
+			arr[i].isAssigned = true;
+			return i;
+		};
+		if (arr[i].nodeID == init_ID) {
+			return i;
+		};
+	}
+	return 0;
+}
+
+template <class T>
+void Graph<T>::addArc(T pre, T suc) {
+	int pre_loc = addOrFindNode(pre);
+	int suc_loc = addOrFindNode(suc);
+	arr[pre_loc].addSuccessor(suc_loc);
+}
 
 int main () {
-	Graph<int> myGraph = Graph<int>(9);
-	myGraph.addArc(1, 3);
-	myGraph.addArc(3, 7);
-	myGraph.addArc(7, 4);
-	myGraph.addArc(7, 5);
-	myGraph.addArc(4, 6);
-	myGraph.addArc(5, 8);
-	myGraph.addArc(8, 6);
-	myGraph.addArc(9, 5);
-	myGraph.addArc(9, 2);
-	myGraph.addArc(2, 8);
-	myGraph.print();
-    return 0;
+	Graph<char> myGraph = Graph<char>(11);
+	myGraph.addArc('S', 'A');
+	myGraph.addArc('S', 'D');
+	myGraph.addArc('S', 'G');
+	myGraph.addArc('G', 'D');
+	myGraph.addArc('G', 'E');
+	myGraph.addArc('G', 'H');
+	myGraph.printGraph();
+	return 0;
 }
