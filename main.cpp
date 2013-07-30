@@ -47,6 +47,8 @@ public:
 	int addOrFindNode(T init_ID);
 	void addSuccessor(int pre, int suc) {arr[pre].addSuccessor(suc);};
 	void addArc(T pre, T suc);
+	void DFS(int index);
+	void topoSort();
 };
 
 template <class T>
@@ -98,14 +100,39 @@ void Graph<T>::addArc(T pre, T suc) {
 	arr[pre_loc].addSuccessor(suc_loc);
 }
 
+template <class T>
+void Graph<T>::DFS(int index) {
+	arr[index].isExplored = true;
+	list<int> *successors = arr[index].successors;
+	for (list<int>::iterator it=successors->begin(); it != successors->end(); ++it) {
+		if (not arr[*it].isExplored) {
+			DFS(*it);
+		};
+	};
+	order.push(index);
+};
+
+template <class T>
+void Graph<T>::topoSort() {
+	for (int i=0; i<size; i++) {
+		if (not arr[i].isExplored) {
+			DFS(i);
+		};
+		while (not order.empty()) {
+			cout << arr[order.top()].nodeID << ' ';
+			order.pop();
+		};
+	};
+};
+
 int main () {
 	Graph<char> myGraph = Graph<char>(11);
 	myGraph.addArc('S', 'A');
-	myGraph.addArc('S', 'D');
-	myGraph.addArc('S', 'G');
-	myGraph.addArc('G', 'D');
-	myGraph.addArc('G', 'E');
-	myGraph.addArc('G', 'H');
+	myGraph.addArc('A', 'D');
+	myGraph.addArc('D', 'G');
+	myGraph.addArc('G', 'B');
 	myGraph.printGraph();
+	cout << endl;
+	myGraph.topoSort();
 	return 0;
 }
