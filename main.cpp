@@ -167,10 +167,13 @@ int main () {
 				myGraph.addArc(pre, suc);
 				pre = "";
 				suc = "";
-				}
 			}
 		}
+	}
+	cout << endl;
+	cout << "Your graph is represented as follows:" << endl;
 	myGraph.printGraph();
+	cout << endl;
 	cout << "The topological sorting of your graph is:" << endl;
 	myGraph.topoSort();
 	return 0;
