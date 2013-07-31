@@ -55,6 +55,7 @@ template <class T>
 void Graph<T>::printGraph() {
 	for (int i=0; i<size; i++) {
 		if (arr[i].isAssigned) {
+			cout << i << "\t| ";
 			arr[i].printNode();
 			cout << endl;
 		}
@@ -103,8 +104,8 @@ void Graph<T>::addArc(T pre, T suc) {
 template <class T>
 void Graph<T>::DFS(int index) {
 	arr[index].isExplored = true;
-	list<int> *successors = arr[index].successors;
-	for (list<int>::iterator it=successors->begin(); it != successors->end(); ++it) {
+	list<int> *sucList = arr[index].successors;
+	for (list<int>::iterator it=sucList->begin(); it != sucList->end(); ++it) {
 		if (not arr[*it].isExplored) {
 			DFS(*it);
 		};
@@ -118,21 +119,59 @@ void Graph<T>::topoSort() {
 		if (not arr[i].isExplored) {
 			DFS(i);
 		};
-		while (not order.empty()) {
-			cout << arr[order.top()].nodeID << ' ';
-			order.pop();
-		};
+	};
+	while (not order.empty()) {
+		cout << arr[order.top()].nodeID << ' ';
+		order.pop();
 	};
 };
 
+string getNextNode(string raw_string, int i)
+{
+	string nodeID = "";
+	const string DELIM = " ,()";
+	while (i<raw_string.length()) {
+		// Iterate through equation until you hit a delimiter.
+		if (DELIM.find(raw_string[i]) != -1) {
+			break;
+		}
+		nodeID += raw_string[i];
+		i++;
+	}
+	return nodeID;
+}
+
 int main () {
-	Graph<char> myGraph = Graph<char>(11);
-	myGraph.addArc('S', 'A');
-	myGraph.addArc('A', 'D');
-	myGraph.addArc('D', 'G');
-	myGraph.addArc('G', 'B');
+	cout << "Enter ordered pairs of nodes: ";
+	string raw_string;
+	getline(cin, raw_string);
+	cout << "Enter the number of nodes: ";
+	int num;
+	cin >> num;
+	Graph<string> myGraph = Graph<string>(num);
+	string pre = "", suc = "";
+	const string DELIM = " ,()";
+	int i = 0;
+	while (i<raw_string.length()) {
+		if (DELIM.find(raw_string[i]) != -1) {
+			i++;
+		}
+		else {
+			if (pre == "" && suc == "") {
+				pre = getNextNode(raw_string, i);
+				i += pre.length();
+			}
+			else if (pre != "" && suc == "") {
+				suc = getNextNode(raw_string, i);
+				i += suc.length();
+				myGraph.addArc(pre, suc);
+				pre = "";
+				suc = "";
+				}
+			}
+		}
 	myGraph.printGraph();
-	cout << endl;
+	cout << "The topological sorting of your graph is:" << endl;
 	myGraph.topoSort();
 	return 0;
 }
